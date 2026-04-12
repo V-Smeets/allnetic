@@ -1,0 +1,69 @@
+<#comment name="Comment">The Params section is a description of template possibilities.<#/comment name="Comment">
+<#params>
+	<#param name="Description" value="HTML report"/>
+	<#param name="Output file type" value="HTML"/>
+	<#param name="Default output file name" value="Atos"/>
+	<#param name="Output file extension" value=".html"/>
+	<#param name="Can show projects detail" value="True"/>
+	<#param name="Can show tasks detail" value="True"/>
+	<#param name="Can show periods detail" value="True"/>
+	<#translation name="HTML_Translation_Table" default="Macro">
+		<#replace string="#22" with="&quot;"/>
+		<#replace string="<" with="&lt;"/>
+		<#replace string=">" with="&gt;"/>
+		<#replace string="&" with="&amp;"/>
+	<#/translation name="HTML_Translation_Table">
+<#/params>
+
+<HTML>
+<HEAD>
+<TITLE>Timesheet for <#macro name="UserName"/>.</TITLE>
+<SCRIPT type="text/javascript" src="file:///C:/Users/s230984/OneDrive%20-%20ATOS/Documents/AllNetic%20Working%20Time%20Tracker/Templates/Atos.HTML.js"></SCRIPT>
+<style type="text/css">
+TABLE {
+	border-style: outset;
+	margin-top: 10px;
+}
+
+TD,TH {
+	border-style: inset;
+}
+</style>
+</HEAD>
+
+<BODY>
+<H1>Timesheet for <#macro name="UserName"/>.</H1>
+
+<SCRIPT type="text/javascript">
+var report = new Report();
+
+/* Collect the data. */
+<#repeat name="Projects">
+	report.addProject(
+			<#macro name="ProjectUID"/>,
+			"<#macro name="ProjectName"/>");
+	<#repeat name="Tasks">
+		report.addTask(
+				<#macro name="TaskUID"/>,
+				<#macro name="TaskOwnerUID"/>,
+				"<#macro name="TaskName"/>",
+				"<#macro name="TaskDesc"/>");
+		<#repeat name="Periods">
+			report.addPeriod(
+					<#macro name="PeriodUID"/>,
+					<#macro name="TaskUID"/>,
+					new Date(<#macro name="PeriodBeginDateTime" datetype="Custom" format="yyyy, m - 1, d, h, n, s, 0"/>),
+					<#macro name="PeriodDuration"/>);
+		<#/repeat name="Periods">
+	<#/repeat name="Tasks">
+<#/repeat name="Projects">
+
+/* Display the data */
+report.print(
+		new Date(<#macro name="TotalFirstDateTime" datetype="Custom" format="yyyy, m - 1, d"/>),
+		new Date(<#macro name="TotalLastDateTime" datetype="Custom" format="yyyy, m - 1, d"/>));
+
+</SCRIPT>
+
+</BODY>
+</HTML>
