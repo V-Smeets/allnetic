@@ -1,0 +1,128 @@
+
+<HTML>
+<HEAD>
+<TITLE>Timesheet for Vincent Smeets.</TITLE>
+<SCRIPT type="text/javascript" src="file:///C:/Users/s230984/OneDrive%20-%20ATOS/Documents/AllNetic%20Working%20Time%20Tracker/Templates/Atos.HTML.js"></SCRIPT>
+<style type="text/css">
+TABLE {
+	border-style: outset;
+	margin-top: 10px;
+}
+
+TD,TH {
+	border-style: inset;
+}
+</style>
+</HEAD>
+
+<BODY>
+<H1>Timesheet for Vincent Smeets.</H1>
+
+<SCRIPT type="text/javascript">
+var report = new Report();
+
+/* Collect the data. */
+	report.addProject(
+			1443,
+			"DE.6Z0021 PKI Atos Trustcenter");
+		report.addTask(
+				1444,
+				1443,
+				"070 Atos PKI Entwicklung STC",
+				"DE.6Z0021.070");
+		report.addTask(
+				1451,
+				1444,
+				"070 Atos PKI Entwicklung STC/CermitNeo",
+				"");
+			report.addPeriod(
+					13510,
+					1451,
+					new Date(2026, 3 - 1, 23, 6, 55, 1, 0),
+					32362);
+			report.addPeriod(
+					13511,
+					1451,
+					new Date(2026, 3 - 1, 24, 6, 55, 8, 0),
+					14746);
+			report.addPeriod(
+					13513,
+					1451,
+					new Date(2026, 3 - 1, 24, 11, 29, 1, 0),
+					9513);
+			report.addPeriod(
+					13514,
+					1451,
+					new Date(2026, 3 - 1, 24, 14, 7, 58, 0),
+					6508);
+			report.addPeriod(
+					13515,
+					1451,
+					new Date(2026, 3 - 1, 25, 7, 1, 16, 0),
+					23256);
+			report.addPeriod(
+					13517,
+					1451,
+					new Date(2026, 3 - 1, 25, 15, 20, 5, 0),
+					2472);
+			report.addPeriod(
+					13518,
+					1451,
+					new Date(2026, 3 - 1, 26, 6, 58, 2, 0),
+					32272);
+			report.addPeriod(
+					13519,
+					1451,
+					new Date(2026, 3 - 1, 27, 7, 9, 23, 0),
+					492);
+			report.addPeriod(
+					13520,
+					1451,
+					new Date(2026, 3 - 1, 27, 7, 17, 23, 0),
+					20132);
+			report.addPeriod(
+					13521,
+					1451,
+					new Date(2026, 3 - 1, 30, 6, 56, 19, 0),
+					8171);
+	report.addProject(
+			1427,
+			"DE.975998 CARIAD ORU 2-3");
+		report.addTask(
+				1428,
+				1427,
+				"010 CARIAD ORU 2-3",
+				"DE.975998.010");
+			report.addPeriod(
+					13516,
+					1428,
+					new Date(2026, 3 - 1, 25, 13, 28, 54, 0),
+					6669);
+	report.addProject(
+			1411,
+			"DE.KSRW60 Kostenstellenprojekt");
+		report.addTask(
+				1416,
+				1411,
+				"010 Kostenstellenprojekt",
+				"DE.KSRW60.010");
+		report.addTask(
+				1453,
+				1416,
+				"010 Kostenstellenprojekt/CC-Meeting",
+				"");
+			report.addPeriod(
+					13512,
+					1453,
+					new Date(2026, 3 - 1, 24, 11, 0, 56, 0),
+					1684);
+
+/* Display the data */
+report.print(
+		new Date(2026, 3 - 1, 23),
+		new Date(2026, 3 - 1, 30));
+
+</SCRIPT>
+
+</BODY>
+</HTML>
