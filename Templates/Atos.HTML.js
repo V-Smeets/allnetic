@@ -161,7 +161,7 @@ class Report {
 
 	#printProject(startDate, endDate, project) {
 		document.writeln("<tr>");
-		document.writeln(`<td>${project.getName()}</td>`);
+		document.writeln(`<th align="left">${project.getName()}</th>`);
 		document.writeln(`<td></td>`);
 		for (let date = new Date(startDate); date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
 			document.writeln(`<td></td>`);
