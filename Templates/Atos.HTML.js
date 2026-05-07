@@ -82,6 +82,10 @@ class Project extends ListedItem {
 		this.#tasks[task.id] = task;
 	}
 
+	getName() {
+		return this.#name;
+	}
+
 }
 
 class Report {
@@ -122,9 +126,9 @@ class Report {
 	#printHeader(startDate, endDate) {
 		document.writeln("<thead>");
 		document.writeln("<tr>");
-		document.writeln("<th>PSP</th>");
 		document.writeln("<th>Name</th>");
-		for (let date = startDate; date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
+		document.writeln("<th>PSP</th>");
+		for (let date = new Date(startDate); date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
 			document.writeln(`<th>${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}</th>`);
 		}
 		document.writeln("</tr>");
@@ -133,7 +137,20 @@ class Report {
 
 	#printBody(startDate, endDate, projects) {
 		document.writeln("<tbody>");
+		for (const [id, project] of Object.entries(projects)) {
+			this.#printProject(startDate, endDate, project);
+		}
 		document.writeln("</tbody>");
+	}
+
+	#printProject(startDate, endDate, project) {
+		document.writeln("<tr>");
+		document.writeln(`<td>${project.getName()}</td>`);
+		document.writeln(`<td></td>`);
+		for (let date = new Date(startDate); date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
+			document.writeln(`<td></td>`);
+		}
+		document.writeln("</tr>");
 	}
 
 }
