@@ -115,6 +115,7 @@ class Report {
 	#printTable(startDate, endDate) {
 		document.writeln("<table>");
 		this.#printHeader(startDate, endDate);
+		this.#printBody(startDate, endDate, this.#projects);
 		document.writeln("</table>");
 	}
 
@@ -128,6 +129,11 @@ class Report {
 		}
 		document.writeln("</tr>");
 		document.writeln("</thead>");
+	}
+
+	#printBody(startDate, endDate, projects) {
+		document.writeln("<tbody>");
+		document.writeln("</tbody>");
 	}
 
 }
