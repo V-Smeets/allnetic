@@ -82,10 +82,6 @@ class Project extends ListedItem {
 		this.#tasks[task.id] = task;
 	}
 
-	toString() {
-		return `${this.id} => ${this.#name}`;
-	}
-
 }
 
 class Report {
@@ -111,8 +107,12 @@ class Report {
 
 	print(startDate, endDate) {
 		console.log(`print(${startDate}, ${endDate})`);
-		for (const [id, project] of Object.entries(this.#projects)) {
-			console.log(`project: ${project}`);
-		}
+		this.#printTable(startDate, endDate);
 	}
+
+	#printTable(startDate, endDate) {
+		document.writeln("<table>");
+		document.writeln("</table>");
+	}
+
 }
