@@ -107,12 +107,27 @@ class Report {
 
 	print(startDate, endDate) {
 		console.log(`print(${startDate}, ${endDate})`);
+		startDate.setHours(12, 0, 0, 0);
+		endDate.setHours(13, 0, 0, 0);
 		this.#printTable(startDate, endDate);
 	}
 
 	#printTable(startDate, endDate) {
 		document.writeln("<table>");
+		this.#printHeader(startDate, endDate);
 		document.writeln("</table>");
+	}
+
+	#printHeader(startDate, endDate) {
+		document.writeln("<thead>");
+		document.writeln("<tr>");
+		document.writeln("<th>PSP</th>");
+		document.writeln("<th>Name</th>");
+		for (let date = startDate; date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
+			document.writeln(`<th>${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}</th>`);
+		}
+		document.writeln("</tr>");
+		document.writeln("</thead>");
 	}
 
 }
