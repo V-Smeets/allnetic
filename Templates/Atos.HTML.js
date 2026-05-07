@@ -65,6 +65,18 @@ class Task extends ListedItem {
 		this.#periods[period.id] = period;
 	}
 
+	getName() {
+		return this.#name;
+	}
+
+	getPSP() {
+		return this.#psp;
+	}
+
+	getSubTasks() {
+		return this.#subTasks;
+	}
+
 }
 
 class Project extends ListedItem {
@@ -84,6 +96,10 @@ class Project extends ListedItem {
 
 	getName() {
 		return this.#name;
+	}
+
+	getTasks() {
+		return this.#tasks;
 	}
 
 }
@@ -151,6 +167,22 @@ class Report {
 			document.writeln(`<td></td>`);
 		}
 		document.writeln("</tr>");
+		for (const [id, task] of Object.entries(project.getTasks())) {
+			this.#printTask(startDate, endDate, task);
+		}
+	}
+
+	#printTask(startDate, endDate, task) {
+		document.writeln("<tr>");
+		document.writeln(`<td>${task.getName()}</td>`);
+		document.writeln(`<td>${task.getPSP()}</td>`);
+		for (let date = new Date(startDate); date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
+			document.writeln(`<td></td>`);
+		}
+		document.writeln("</tr>");
+		for (const [id, subTask] of Object.entries(task.getSubTasks())) {
+			this.#printTask(startDate, endDate, subTask);
+		}
 	}
 
 }
