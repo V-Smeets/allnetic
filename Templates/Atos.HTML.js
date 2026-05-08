@@ -12,6 +12,19 @@ class Item {
 		return this.#id;
 	}
 
+	getDurationOnDate(date) {
+		let dayStart = new Date(date);
+		dayStart.setHours(0, 0, 0, 0);
+		let dayEnd = new Date(date);
+		dayEnd.setHours(23, 59, 59, 999);
+
+		return this.getDurationBetweenTimes(dayStart, dayEnd);
+	}
+
+	getDurationBetweenTimes(dayStart, dayEnd) {
+		throw new Error("Abstract method");
+	}
+
 }
 
 class ListedItem extends Item {
@@ -36,9 +49,16 @@ class Period extends Item {
 
 	constructor(id, startTime, duration) {
 		super(id);
-		console.log(`Period(${id}, ${startTime}, ${duration})`);
 		this.#startTime = startTime;
 		this.#duration = duration;
+	}
+
+	getDurationBetweenTimes(dayStart, dayEnd) {
+		let duration = 0;
+		if (this.#startTime >= dayStart && this.#startTime <= dayEnd) {
+			duration += this.#duration;
+		}
+		return duration;
 	}
 
 }
@@ -52,7 +72,6 @@ class Task extends ListedItem {
 
 	constructor (id, name, psp) {
 		super(id);
-		console.log(`Task(${id}, ${name}, ${psp})`);
 		this.#name = name;
 		this.#psp = psp;
 	}
@@ -77,6 +96,17 @@ class Task extends ListedItem {
 		return this.#subTasks;
 	}
 
+	getDurationBetweenTimes(dayStart, dayEnd) {
+		let duration = 0;
+		for (const [id, subTask] of Object.entries(this.#subTasks)) {
+			duration += subTask.getDurationBetweenTimes(dayStart, dayEnd);
+		}
+		for (const [id, period] of Object.entries(this.#periods)) {
+			duration += period.getDurationBetweenTimes(dayStart, dayEnd);
+		}
+		return duration;
+	}
+
 }
 
 class Project extends ListedItem {
@@ -86,7 +116,6 @@ class Project extends ListedItem {
 
 	constructor(id, name) {
 		super(id);
-		console.log(`Project(${id}, ${name})`);
 		this.#name = name;
 	}
 
@@ -109,24 +138,20 @@ class Report {
 	#projects = {};
 
 	addProject(id, name) {
-		console.log(`addProject(${id}, ${name})`);
 		this.#projects[id] = new Project(id, name);
 	}
 
 	addTask(id, parentId, name, psp) {
-		console.log(`addTask(${id}, ${parentId}, ${name}, ${psp})`);
 		let parentItem = ListedItem.getItem(parentId);
 		parentItem.addTask(new Task(id, name, psp));
 	}
 
 	addPeriod(id, parentId, startTime, duration) {
-		console.log(`addPeriod(${id}, ${parentId}, ${startTime}, ${duration})`);
 		let parentItem = ListedItem.getItem(parentId);
 		parentItem.addPeriod(new Period(id, startTime, duration));
 	}
 
 	print(startDate, endDate) {
-		console.log(`print(${startDate}, ${endDate})`);
 		startDate.setHours(12, 0, 0, 0);
 		endDate.setHours(13, 0, 0, 0);
 		this.#printTable(startDate, endDate);
@@ -177,7 +202,13 @@ class Report {
 		document.writeln(`<td>${task.getName()}</td>`);
 		document.writeln(`<td>${task.getPSP()}</td>`);
 		for (let date = new Date(startDate); date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
-			document.writeln(`<td></td>`);
+			let duration = task.getDurationOnDate(date);
+			let hours = Math.round(duration / 3600.0 * 4.0) / 4.0;
+			if (hours > 0.0) {
+				document.writeln(`<td align="right">${hours.toFixed(2)}</td>`);
+			} else {
+				document.writeln(`<td></td>`);
+			}
 		}
 		document.writeln("</tr>");
 		for (const [id, subTask] of Object.entries(task.getSubTasks())) {
