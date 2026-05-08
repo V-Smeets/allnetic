@@ -192,7 +192,12 @@ class Report {
 
 	#printTask(startDate, endDate, task) {
 		document.writeln("<tr>");
-		document.writeln(`<td>${task.getName()}</td>`);
+		let name = task.getName();
+		let slashIndex = name.indexOf("/");
+		if (slashIndex >= 0) {
+			name = name.substring(slashIndex + 1);
+		}
+		document.writeln(`<td>${name}</td>`);
 		document.writeln(`<td>${task.getPSP()}</td>`);
 		for (let date = new Date(startDate); date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
 			let duration = task.getDurationOnDate(date);
