@@ -185,13 +185,6 @@ class Report {
 	}
 
 	#printProject(startDate, endDate, project) {
-		document.writeln("<tr>");
-		document.writeln(`<th align="left">${project.getName()}</th>`);
-		document.writeln(`<td></td>`);
-		for (let date = new Date(startDate); date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
-			document.writeln(`<td></td>`);
-		}
-		document.writeln("</tr>");
 		for (const [id, task] of Object.entries(project.getTasks())) {
 			this.#printTask(startDate, endDate, task);
 		}
