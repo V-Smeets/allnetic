@@ -1,451 +1,424 @@
-function Report() {
-	this.projects = new Array();
-	this.projectsSorted = false;
+"use strict";
+
+class Item {
+
+	#id;
+
+	constructor(id) {
+		this.#id = id;
+	}
+
+	get id() {
+		return this.#id;
+	}
+
+	getDurationOnDate(date) {
+		let dayStart = new Date(date);
+		dayStart.setHours(0, 0, 0, 0);
+		let dayEnd = new Date(date);
+		dayEnd.setHours(23, 59, 59, 999);
+
+		return this.getDurationBetweenTimes(dayStart, dayEnd);
+	}
+
+	getDurationBetweenTimes(dayStart, dayEnd) {
+		throw new Error("Abstract method");
+	}
+
 }
 
-Report.prototype.findProject = function(id) {
-	for (var i = 0; i < this.projects.length; i++) {
-		var project = this.projects[i];
-		if (project.id == id) {
-			return project;
-		}
-	}
-	return null;
-};
+class ListedItem extends Item {
 
-Report.prototype.findTask = function(id) {
-	for (var i = 0; i < this.projects.length; i++) {
-		var project = this.projects[i];
-		var task = project.findTask(id);
-		if (task != null) {
-			return task;
-		}
-	}
-	return null;
-};
+	static #items = {};
 
-Report.prototype.findPeriod = function(id) {
-	for (var i = 0; i < this.projects.length; i++) {
-		var project = this.projects[i];
-		var period = project.findPeriod(id);
-		if (period != null) {
-			return period;
-		}
+	static getItem(id) {
+		return ListedItem.#items[id];
 	}
-	return null;
-};
 
-Report.prototype.addProject = function(id, name) {
-	var project = this.findProject(id);
-	if (project != null) {
-		alert("The project with the id " + id + " already exists!");
+	constructor(id) {
+		super(id);
+		ListedItem.#items[id] = this;
 	}
-	this.projects.push(new Project(id, name));
-	this.projectsSorted = false;
-};
 
-Report.prototype.addTask = function(id, parentId, name, psp) {
-	var task = this.findTask(id);
-	if (task != null) {
-		alert("The task with the id " + id + " already exists!");
-	}
-	var parent = this.findProject(parentId);
-	parent = parent != null ? parent : this.findTask(parentId);
-	if (parent == null) {
-		alert("The parent with the id " + parentId + " doesn't exists!");
-	}
-	var nameParts = name.split(Task.nameSeparator);
-	var partIndex = nameParts.length - 1;
-	task = new Task(parent, id, nameParts[partIndex], psp);
-	parent.addTask(task);
-};
-
-Report.prototype.addPeriod = function(id, parentId, startTime, duration) {
-	var period = this.findPeriod(id);
-	if (period != null) {
-		alert("The period with the id " + id + " already exists!");
-	}
-	var parent = this.findTask(parentId);
-	if (parent == null) {
-		alert("The parent with the id " + parentId + " doesn't exists!");
-	}
-	period = new Period(parent, id, startTime, duration);
-	parent.addPeriod(period);
-};
-
-Report.prototype.print = function(startDate, endDate) {
-	if (!this.projectsSorted) {
-		this.projects.sort(Project.sortFunction);
-		this.projectsSorted = true;
-	}
-	for (var date = startDate; date.getTime() <= endDate.getTime(); date
-			.setTime(date.getTime() + (24 * 60 * 60 * 1000))) {
-		var day = new Day();
-		for (var i = 0; i < this.projects.length; i++) {
-			var project = this.projects[i];
-			project.addPeriodsToDay(date, day);
-		}
-		document.writeln("<TABLE>");
-		document.writeln("<CAPTION>" + date.toDateString() + "</CAPTION>");
-
-		document.writeln("<THEAD>");
-		document.writeln("<TR><TH colspan=\"2\">Name</TH><TH>Time</TH></TR>");
-		document.writeln("</THEAD>");
-		document.writeln("<TBODY>");
-		document.writeln("<TR><TD colspan=\"2\">1. Start</TD><TD>"
-				+ day.getFirstStartTime() + "</TD></TR>");
-		document.writeln("<TR><TD colspan=\"2\">1. End</TD><TD>"
-				+ day.getFirstEndTime() + "</TD></TR>");
-		document.writeln("<TR><TD colspan=\"2\">2. Start</TD><TD>"
-				+ day.getLastStartTime() + "</TD></TR>");
-		document.writeln("<TR><TD colspan=\"2\">2. End</TD><TD>"
-				+ day.getLastEndTime() + "</TD></TR>");
-		document.writeln("</TBODY>");
-
-		document.writeln("<THEAD>");
-		document.writeln("<TR><TH>PSP</TH><TH>Name</TH><TH>Time</TH></TR>");
-		document.writeln("</THEAD>");
-		document.writeln("<TBODY>");
-		for (var i = 0; i < this.projects.length; i++) {
-			var project = this.projects[i];
-			project.print(date);
-		}
-		document.writeln("</TBODY>");
-		document.writeln("</TABLE>");
-	}
-};
-
-function Project(id, name) {
-	this.id = id;
-	this.named = name;
-	this.tasks = new Array();
-	this.tasksSorted = false;
 }
 
-Project.sortFunction = function(a, b) {
-	if (a == null && b == null) {
-		return 0;
-	} else if (a == null) {
-		return -1;
-	} else if (b == null) {
-		return 1;
-	} else if (a.name < b.name) {
-		return -1;
-	} else if (a.name > b.name) {
-		return 1;
-	} else {
-		return 0;
-	}
-};
+class Period extends Item {
 
-Project.prototype.findTask = function(id) {
-	for (var i = 0; i < this.tasks.length; i++) {
-		var task = this.tasks[i];
-		if (task.id == id) {
-			return task;
+	#startTime;
+	#duration;
+
+	constructor(id, startTime, duration) {
+		super(id);
+		this.#startTime = startTime;
+		this.#duration = duration;
+	}
+
+	getStartTime() {
+		return this.#startTime;
+	}
+
+	getDurationBetweenTimes(dayStart, dayEnd) {
+		let duration = 0;
+		if (this.#startTime >= dayStart && this.#startTime <= dayEnd) {
+			duration += this.#duration;
 		}
-		var subTask = task.findSubTask(id);
-		if (subTask != null) {
-			return subTask;
-		}
+		return duration;
 	}
-	return null;
-};
 
-Project.prototype.findPeriod = function(id) {
-	for (var i = 0; i < this.tasks.length; i++) {
-		var task = this.tasks[i];
-		var period = task.findPeriod(id);
-		if (period != null) {
-			return period;
-		}
-	}
-	return null;
-};
-
-Project.prototype.addTask = function(task) {
-	this.tasks.push(task);
-	this.tasksSorted = false;
-};
-
-Project.prototype.addPeriodsToDay = function(date, day) {
-	for (var i = 0; i < this.tasks.length; i++) {
-		var task = this.tasks[i];
-		task.addPeriodsToDay(date, day);
-	}
-};
-
-Project.prototype.print = function(date) {
-	if (!this.tasksSorted) {
-		this.tasks.sort(Task.sortFunction);
-		this.tasksSorted = true;
-	}
-	for (var i = 0; i < this.tasks.length; i++) {
-		var task = this.tasks[i];
-		task.print(date);
-	}
-};
-
-function Task(parent, id, name, psp) {
-	this.parent = parent;
-	this.id = id;
-	this.name = name;
-	this.psp = psp;
-	this.subTasks = new Array();
-	this.subTasksSorted = false;
-	this.periods = new Array();
-	this.periodsSorted = false;
 }
 
-Task.nameSeparator = "/";
+class WorkTimes {
 
-Task.sortFunction = function(a, b) {
-	if (a == null && b == null) {
-		return 0;
-	} else if (a == null) {
-		return -1;
-	} else if (b == null) {
-		return 1;
-	} else if (a.psp != null && b.psp != null) {
-		if (a.psp < b.psp) {
-			return -1;
-		} else if (a.psp > b.psp) {
-			return 1;
-		} else {
-			return 0;
-		}
-	} else if (a.name < b.name) {
-		return -1;
-	} else if (a.name > b.name) {
-		return 1;
-	} else {
-		return 0;
-	}
-};
+	#dayStart;
+	#dayEnd;
+	#workTimes = [];
 
-Task.prototype.findSubTask = function(id) {
-	for (var i = 0; i < this.subTasks.length; i++) {
-		var subTask = this.subTasks[i];
-		if (subTask.id == id) {
-			return subTask;
-		}
-		var subSubTask = subTask.findSubTask(id);
-		if (subSubTask != null) {
-			return subSubTask;
+	constructor(date) {
+		this.#dayStart = new Date(date);
+		this.#dayStart.setHours(0, 0, 0, 0);
+		this.#dayEnd = new Date(date);
+		this.#dayEnd.setHours(23, 59, 59, 999);
+		this.#workTimes.length = 24 * 4;
+		for (let index = 0; index < this.#workTimes.length; index++) {
+			this.#workTimes[index] = 0;
 		}
 	}
-	return null;
-};
 
-Task.prototype.findPeriod = function(id) {
-	for (var i = 0; i < this.periods.length; i++) {
-		var period = this.periods[i];
-		if (period.id == id) {
-			return period;
+	add(period) {
+		let duration = period.getDurationBetweenTimes(this.#dayStart, this.#dayEnd);
+		if (duration === 0) {
+			return;
+		}
+		let startTime = period.getStartTime();
+		let startSeconds = (startTime.getTime() - this.#dayStart.getTime()) / 1000;
+		let startIndex = this.#toIndex(startSeconds);
+		let endSeconds = startSeconds + duration;
+		let endIndex = this.#toIndex(endSeconds);
+		for (let index = startIndex; index <= endIndex; index++) {
+			this.#workTimes[index] = 1;
 		}
 	}
-	for (var i = 0; i < this.subTasks.length; i++) {
-		var subTask = this.subTasks[i];
-		var period = subTask.findPeriod(id);
-		if (period != null) {
-			return period;
+
+	getFirstStartTime() {
+		this.#calculateIndex();
+		let index = this.#firstStartIndex;
+		if (index < 0) {
+			return undefined;
 		}
+		let seconds = this.#toSeconds(index);
+		return new Date(this.#dayStart.getTime() + seconds * 1000);
 	}
-	return null;
-};
 
-Task.prototype.addTask = function(task) {
-	this.subTasks.push(task);
-	this.subTasksSorted = false;
-};
-
-Task.prototype.addPeriod = function(period) {
-	this.periods.push(period);
-	this.periodsSorted = false;
-};
-
-Task.prototype.getDuration = function(date) {
-	var duration = 0.0;
-	for (var i = 0; i < this.periods.length; i++) {
-		var period = this.periods[i];
-		duration += period.getDuration(date);
-	}
-	for (var i = 0; i < this.subTasks.length; i++) {
-		var subTask = this.subTasks[i];
-		duration += subTask.getDuration(date);
-	}
-	return duration;
-};
-
-Task.prototype.addPeriodsToDay = function(date, day) {
-	for (var i = 0; i < this.periods.length; i++) {
-		var period = this.periods[i];
-		var duration = period.getDuration(date);
-		if (duration > 0) {
-			day.addPeriod(period);
+	getFirstEndTime() {
+		this.#calculateIndex();
+		let index = this.#firstEndIndex;
+		if (index < 0) {
+			return undefined;
 		}
+		let seconds = this.#toSeconds(index);
+		return new Date(this.#dayStart.getTime() + seconds * 1000);
 	}
-	for (var i = 0; i < this.subTasks.length; i++) {
-		var subTask = this.subTasks[i];
-		subTask.addPeriodsToDay(date, day);
-	}
-};
 
-Task.prototype.print = function(date) {
-	if (!this.subTasksSorted) {
-		this.subTasks.sort(Task.sortFunction);
-		this.subTasksSorted = true;
-	}
-	if (!this.periodsSorted) {
-		this.periods.sort(Period.sortFunction);
-		this.periodsSorted = true;
-	}
-	var duration = this.getDuration(date);
-	var time = Period.toTime(duration);
-	document.writeln("<TR>");
-	document.writeln("<TD>" + this.psp + "</TD>");
-	document.writeln("<TD>" + this.name + "</TD>");
-	if (time > 0.0) {
-		document.writeln("<TD>" + time.toFixed(2) + "</TD>");
-	} else {
-		document.writeln("<TD></TD>");
-	}
-	document.writeln("</TR>");
-	if (this.psp != "") {
-		for (var i = 0; i < this.subTasks.length; i++) {
-			var subTask = this.subTasks[i];
-			subTask.print(date);
+	getSecondStartTime() {
+		this.#calculateIndex();
+		let index = this.#secondStartIndex;
+		if (index < 0) {
+			return undefined;
 		}
+		let seconds = this.#toSeconds(index);
+		return new Date(this.#dayStart.getTime() + seconds * 1000);
 	}
-};
 
-function Period(parent, id, startTime, duration) {
-	this.parent = parent;
-	this.id = id;
-	this.startTime = startTime;
-	this.endTime = new Date(startTime.getTime() + duration * 1000);
+	getSecondEndTime() {
+		this.#calculateIndex();
+		let index = this.#secondEndIndex;
+		if (index < 0) {
+			return undefined;
+		}
+		let seconds = this.#toSeconds(index);
+		return new Date(this.#dayStart.getTime() + seconds * 1000);
+	}
+
+	#toIndex(seconds) {
+		return Math.floor((seconds + 7.5 * 60) / (15 * 60));
+	}
+
+	#toSeconds(index) {
+		return index * (15 * 60);
+	}
+
+	#indexIsCalculated = false;
+	#firstStartIndex = -1;
+	#firstEndIndex = -1;
+	#secondStartIndex = -1;
+	#secondEndIndex = -1;
+
+	#calculateIndex() {
+		if (this.#indexIsCalculated) {
+			return;
+		}
+
+		let previousValue = 0;
+		for (let index = 0; index < this.#workTimes.length; index++) {
+			let value = this.#workTimes[index];
+
+			if (value == previousValue) {
+				;
+			} else if (value > previousValue) {
+				if (this.#firstStartIndex < 0) {
+					this.#firstStartIndex = index;
+				} else if (index - this.#firstEndIndex < 4) {
+					this.#firstEndIndex = -1;
+				} else if (this.#secondStartIndex < 0) {
+					this.#secondStartIndex = index;
+				}
+			} else if (value < previousValue) {
+				if (this.#firstEndIndex < 0) {
+					this.#firstEndIndex = index - 1;
+				} else if (this.#secondStartIndex > 0) {
+					this.#secondEndIndex = index - 1;
+				}
+			}
+
+			previousValue = value;
+		}
+
+		this.#indexIsCalculated = true;
+	}
+
 }
 
-Period.sortFunction = function(a, b) {
-	if (a == null && b == null) {
-		return 0;
-	} else if (a == null) {
-		return -1;
-	} else if (b == null) {
-		return 1;
-	} else if (a.startTime < b.startTime) {
-		return -1;
-	} else if (a.startTime > b.startTime) {
-		return 1;
-	} else {
-		return 0;
+class Task extends ListedItem {
+
+	#name;
+	#psp;
+	#subTasks = {};
+	#periods = {};
+
+	constructor (id, name, psp) {
+		super(id);
+		this.#name = name;
+		this.#psp = psp;
 	}
-};
 
-Period.toTime = function(duration) {
-	var hours = duration / 3600.0;
-	var time = Math.round(hours * 4.0) / 4.0;
-	return time;
-};
-
-Period.prototype.getDuration = function(date) {
-	var nextDate = new Date(date.getTime() + (24 * 60 * 60 * 1000));
-	if (this.startTime >= date && this.endTime <= nextDate) {
-		return (this.endTime.getTime() - this.startTime.getTime()) / 1000;
-	} else if (this.startTime >= date && this.startTime < nextDate) {
-		return (nextDate.getTime() - this.startTime.getTime()) / 1000;
-	} else if (this.endTime > date && this.endTime <= nextDate) {
-		return (this.endTime.getTime() - date.getTime()) / 1000;
-	} else if (this.startTime < date && this.endTime >= nextDate) {
-		return (nextDate.getTime() - date.getTime()) / 1000;
-	} else {
-		return 0.0;
+	addTask(task) {
+		this.#subTasks[task.id] = task;
 	}
-};
 
-function Day() {
-	this.periods = new Array();
-	this.periodsSorted = false;
-	this.pauseDuration = 0;
-	this.restartIndex = -1;
-}
-
-Day.minPauseDuration = 45 * 60;
-
-Day.prototype.addPeriod = function(period) {
-	this.periods.push(period);
-	this.periodsSorted = false;
-};
-
-Day.prototype._calculatePause = function() {
-	if (this.periodsSorted) {
-		return;
+	addPeriod(period) {
+		this.#periods[period.id] = period;
 	}
-	this.periods.sort(Period.sortFunction);
-	this.periodsSorted = true;
-	for (var i = 1; i < this.periods.length; i++) {
-		var previousPeriod = this.periods[i - 1];
-		var period = this.periods[i];
-		var duration = (period.startTime.getTime() - previousPeriod.endTime
-				.getTime()) / 1000;
-		if (duration > this.pauseDuration) {
-			this.pauseDuration = duration;
-			this.restartIndex = i;
+
+	getName() {
+		return this.#name;
+	}
+
+	getPSP() {
+		return this.#psp;
+	}
+
+	getSubTasks() {
+		return this.#subTasks;
+	}
+
+	getDurationBetweenTimes(dayStart, dayEnd) {
+		let duration = 0;
+		for (const [id, subTask] of Object.entries(this.#subTasks)) {
+			duration += subTask.getDurationBetweenTimes(dayStart, dayEnd);
+		}
+		for (const [id, period] of Object.entries(this.#periods)) {
+			duration += period.getDurationBetweenTimes(dayStart, dayEnd);
+		}
+		return duration;
+	}
+
+	updateWorkTimes(workTimes) {
+		for (const [id, subTask] of Object.entries(this.#subTasks)) {
+			subTask.updateWorkTimes(workTimes);
+		}
+		for (const [id, period] of Object.entries(this.#periods)) {
+			workTimes.add(period);
 		}
 	}
-};
 
-Day.timeToString = function(time) {
-	if (time == null) {
-		return "";
-	}
-	var minutes = time.getHours() * 60 + time.getMinutes();
-	minutes = Math.round(minutes / 15) * 15;
-	var hours = Math.floor(minutes / 60);
-	minutes = Math.floor(minutes - hours * 60);
-	var hourString = ("00" + hours).slice(-2);
-	var minuteString = ("00" + minutes).slice(-2);
-	return hourString + ":" + minuteString;
-};
+}
 
-Day.prototype.getFirstStartTime = function() {
-	this._calculatePause();
-	if (this.periods.length == 0) {
-		return Day.timeToString(null);
-	} else {
-		return Day.timeToString(this.periods[0].startTime);
-	}
-};
+class Project extends ListedItem {
 
-Day.prototype.getFirstEndTime = function() {
-	this._calculatePause();
-	if (this.periods.length == 0) {
-		return Day.timeToString(null);
-	} else if (this.pauseDuration < Day.minPauseDuration) {
-		return Day.timeToString(this.periods[this.periods.length - 1].endTime);
-	} else {
-		return Day.timeToString(this.periods[this.restartIndex - 1].endTime);
-	}
-};
+	#name;
+	#tasks = {};
 
-Day.prototype.getLastStartTime = function() {
-	this._calculatePause();
-	if (this.periods.length == 0) {
-		return Day.timeToString(null);
-	} else if (this.pauseDuration < Day.minPauseDuration) {
-		return Day.timeToString(null);
-	} else {
-		return Day.timeToString(this.periods[this.restartIndex].startTime);
+	constructor(id, name) {
+		super(id);
+		this.#name = name;
 	}
-};
 
-Day.prototype.getLastEndTime = function() {
-	this._calculatePause();
-	if (this.periods.length == 0) {
-		return Day.timeToString(null);
-	} else if (this.pauseDuration < Day.minPauseDuration) {
-		return Day.timeToString(null);
-	} else {
-		return Day.timeToString(this.periods[this.periods.length - 1].endTime);
+	addTask(task) {
+		this.#tasks[task.id] = task;
 	}
-};
+
+	getName() {
+		return this.#name;
+	}
+
+	getTasks() {
+		return this.#tasks;
+	}
+
+	updateWorkTimes(workTimes) {
+		for (const [id, task] of Object.entries(this.#tasks)) {
+			task.updateWorkTimes(workTimes);
+		}
+	}
+
+}
+
+class Report {
+
+	#projects = {};
+
+	addProject(id, name) {
+		this.#projects[id] = new Project(id, name);
+	}
+
+	addTask(id, parentId, name, psp) {
+		let parentItem = ListedItem.getItem(parentId);
+		parentItem.addTask(new Task(id, name, psp));
+	}
+
+	addPeriod(id, parentId, startTime, duration) {
+		let parentItem = ListedItem.getItem(parentId);
+		parentItem.addPeriod(new Period(id, startTime, duration));
+	}
+
+	print(startDate, endDate) {
+		startDate.setHours(12, 0, 0, 0);
+		endDate.setHours(12, 0, 0, 0);
+		this.#printTable(startDate, endDate);
+	}
+
+	#printTable(startDate, endDate) {
+		document.writeln("<table>");
+		this.#printHeader(startDate, endDate);
+		this.#printBody(startDate, endDate, this.#projects);
+		document.writeln("</table>");
+	}
+
+	#printHeader(startDate, endDate) {
+		document.writeln("<thead>");
+		document.writeln("<tr>");
+		document.writeln("<th>Name</th>");
+		document.writeln("<th>PSP</th>");
+		let workTimesArray = [];
+		let workTimesIndex = 0;
+		for (let date = new Date(startDate); date.getTime() < endDate.getTime(); date.setDate(date.getDate() + 1)) {
+			document.writeln(`<th>${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}</th>`);
+			let workTimes = new WorkTimes(date);
+			workTimesArray[workTimesIndex++] = workTimes;
+			for (const [id, project] of Object.entries(this.#projects)) {
+				project.updateWorkTimes(workTimes);
+			}
+		}
+		document.writeln("</tr>");
+		document.writeln("<tr>");
+		document.writeln("<th></th>");
+		document.writeln("<th align=\"left\">1. start time</th>");
+		for (let index = 0; index < workTimesArray.length; index++) {
+			let workTimes = workTimesArray[index];
+			let time = workTimes.getFirstStartTime();
+			if (time === undefined) {
+				document.writeln("<td></td>");
+			} else {
+				document.writeln(`<td align="right">${time.getHours()}:${time.getMinutes().toString().padStart(2, "0")}</td>`);
+			}
+		}
+		document.writeln("</tr>");
+		document.writeln("<tr>");
+		document.writeln("<th></th>");
+		document.writeln("<th align=\"left\">1. end time</th>");
+		for (let index = 0; index < workTimesArray.length; index++) {
+			let workTimes = workTimesArray[index];
+			let time = workTimes.getFirstEndTime();
+			if (time === undefined) {
+				document.writeln("<td></td>");
+			} else {
+				document.writeln(`<td align="right">${time.getHours()}:${time.getMinutes().toString().padStart(2, "0")}</td>`);
+			}
+		}
+		document.writeln("</tr>");
+		document.writeln("<tr>");
+		document.writeln("<th></th>");
+		document.writeln("<th align=\"left\">2. start time</th>");
+		for (let index = 0; index < workTimesArray.length; index++) {
+			let workTimes = workTimesArray[index];
+			let time = workTimes.getSecondStartTime();
+			if (time === undefined) {
+				document.writeln("<td></td>");
+			} else {
+				document.writeln(`<td align="right">${time.getHours()}:${time.getMinutes().toString().padStart(2, "0")}</td>`);
+			}
+		}
+		document.writeln("</tr>");
+		document.writeln("<tr>");
+		document.writeln("<th></th>");
+		document.writeln("<th align=\"left\">2. end time</th>");
+		for (let index = 0; index < workTimesArray.length; index++) {
+			let workTimes = workTimesArray[index];
+			let time = workTimes.getSecondEndTime();
+			if (time === undefined) {
+				document.writeln("<td></td>");
+			} else {
+				document.writeln(`<td align="right">${time.getHours()}:${time.getMinutes().toString().padStart(2, "0")}</td>`);
+			}
+		}
+		document.writeln("</tr>");
+		document.writeln("</thead>");
+	}
+
+	#printBody(startDate, endDate, projects) {
+		document.writeln("<tbody>");
+		for (const [id, project] of Object.entries(projects).sort(this.#compareProjectEntries)) {
+			this.#printProject(startDate, endDate, project);
+		}
+		document.writeln("</tbody>");
+	}
+
+	#printProject(startDate, endDate, project) {
+		for (const [id, task] of Object.entries(project.getTasks()).sort(this.#compareTaskEntries)) {
+			this.#printTask(startDate, endDate, task);
+		}
+	}
+
+	#printTask(startDate, endDate, task) {
+		document.writeln("<tr>");
+		let name = task.getName();
+		let slashIndex = name.indexOf("/");
+		if (slashIndex >= 0) {
+			name = name.substring(slashIndex + 1);
+		}
+		document.writeln(`<td>${name}</td>`);
+		document.writeln(`<td>${task.getPSP()}</td>`);
+		for (let date = new Date(startDate); date.getTime() < endDate.getTime(); date.setDate(date.getDate() + 1)) {
+			let duration = task.getDurationOnDate(date);
+			let hours = Math.round(duration / 3600.0 * 4.0) / 4.0;
+			if (hours > 0.0) {
+				document.writeln(`<td align="right">${hours.toFixed(2)}</td>`);
+			} else {
+				document.writeln(`<td></td>`);
+			}
+		}
+		document.writeln("</tr>");
+		for (const [id, subTask] of Object.entries(task.getSubTasks())) {
+			this.#printTask(startDate, endDate, subTask);
+		}
+	}
+
+	#compareProjectEntries(a, b) {
+		return a[1].getName().localeCompare(b[1].getName());
+	}
+
+	#compareTaskEntries(a, b) {
+		return a[1].getName().localeCompare(b[1].getName());
+	}
+
+}
