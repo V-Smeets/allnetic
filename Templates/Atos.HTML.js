@@ -377,14 +377,14 @@ class Report {
 
 	#printBody(startDate, endDate, projects) {
 		document.writeln("<tbody>");
-		for (const [id, project] of Object.entries(projects)) {
+		for (const [id, project] of Object.entries(projects).sort(this.#compareProjectEntries)) {
 			this.#printProject(startDate, endDate, project);
 		}
 		document.writeln("</tbody>");
 	}
 
 	#printProject(startDate, endDate, project) {
-		for (const [id, task] of Object.entries(project.getTasks())) {
+		for (const [id, task] of Object.entries(project.getTasks()).sort(this.#compareTaskEntries)) {
 			this.#printTask(startDate, endDate, task);
 		}
 	}
@@ -411,6 +411,14 @@ class Report {
 		for (const [id, subTask] of Object.entries(task.getSubTasks())) {
 			this.#printTask(startDate, endDate, subTask);
 		}
+	}
+
+	#compareProjectEntries(a, b) {
+		return a[1].getName().localeCompare(b[1].getName());
+	}
+
+	#compareTaskEntries(a, b) {
+		return a[1].getName().localeCompare(b[1].getName());
 	}
 
 }
