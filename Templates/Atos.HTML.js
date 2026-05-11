@@ -311,7 +311,7 @@ class Report {
 		document.writeln("<th>PSP</th>");
 		let workTimesArray = [];
 		let workTimesIndex = 0;
-		for (let date = new Date(startDate); date.getTime() < endDate.getTime(); date.setDate(date.getDate() + 1)) {
+		for (let date = new Date(startDate); date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
 			document.writeln(`<th>${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}</th>`);
 			let workTimes = new WorkTimes(date);
 			workTimesArray[workTimesIndex++] = workTimes;
@@ -398,7 +398,7 @@ class Report {
 		}
 		document.writeln(`<td>${name}</td>`);
 		document.writeln(`<td>${task.getPSP()}</td>`);
-		for (let date = new Date(startDate); date.getTime() < endDate.getTime(); date.setDate(date.getDate() + 1)) {
+		for (let date = new Date(startDate); date.getTime() <= endDate.getTime(); date.setDate(date.getDate() + 1)) {
 			let duration = task.getDurationOnDate(date);
 			let hours = Math.round(duration / 3600.0 * 4.0) / 4.0;
 			if (hours > 0.0) {
